@@ -1,4 +1,4 @@
-# ProjectPath — AI 项目学习路线图生成器
+# github-roadmap-generator — AI 项目学习路线图生成器
 
 ## 产品定位
 
