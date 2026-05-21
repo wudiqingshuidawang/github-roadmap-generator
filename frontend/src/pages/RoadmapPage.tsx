@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getRoadmap } from "../api/roadmap";
 import TimelineView from "../components/TimelineView";
+import MindMapView from "../components/MindMapView";
+import ViewSwitcher from "../components/ViewSwitcher";
+import { copyShareLink } from "../utils/share";
 import type { RoadmapData } from "../types/roadmap";
 
 export default function RoadmapPage() {
@@ -9,6 +12,8 @@ export default function RoadmapPage() {
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [view, setView] = useState<"timeline" | "mindmap">("timeline");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!shareToken) return;
@@ -64,22 +69,38 @@ export default function RoadmapPage() {
           )}
         </div>
 
-        {/* View toggle placeholder - will be replaced in Task 13 */}
+        {/* View switcher */}
         <div className="mb-6 flex justify-end">
-          <button className="px-4 py-2 text-sm bg-white border rounded-lg">
-            Timeline View
-          </button>
+          <ViewSwitcher view={view} onViewChange={setView} />
         </div>
 
         {/* Roadmap content */}
-        {roadmap.phases && <TimelineView phases={roadmap.phases} />}
+        {roadmap.phases && (
+          view === "timeline" ? (
+            <TimelineView phases={roadmap.phases} />
+          ) : (
+            <MindMapView phases={roadmap.phases} title={roadmap.title} />
+          )
+        )}
 
         {/* Share link */}
         <div className="mt-12 p-4 bg-white rounded-lg border text-center">
           <p className="text-sm text-gray-500 mb-2">Share this roadmap:</p>
-          <code className="text-blue-600 break-all">
-            {window.location.origin}/roadmap/{roadmap.share_token}
-          </code>
+          <div className="flex items-center justify-center gap-2">
+            <code className="text-blue-600 break-all">
+              {window.location.origin}/roadmap/{roadmap.share_token}
+            </code>
+            <button
+              onClick={async () => {
+                await copyShareLink(roadmap.share_token);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+            >
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
