@@ -1,4 +1,4 @@
-# ProjectPath
+# github-roadmap-generator
 
 AI-powered project learning roadmap generator. Describe your project idea, and get a personalized learning path based on real GitHub projects.
 
