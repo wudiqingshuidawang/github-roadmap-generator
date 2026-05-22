@@ -5,8 +5,6 @@ import re
 import anthropic
 import httpx
 
-from app.core.config import settings
-
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """你是一个项目规划专家。根据用户想做的项目和 GitHub 上真实项目的数据，生成一份详细的学习路线图。
@@ -47,13 +45,13 @@ JSON 结构示例：
 
 
 class LLMService:
-    def __init__(self, api_key: str = "", model: str = ""):
-        self.api_key = api_key or settings.anthropic_api_key
-        self.model = model or settings.anthropic_model
+    def __init__(self, api_key: str, model: str, base_url: str):
+        self.api_key = api_key
+        self.model = model
         http_client = httpx.AsyncClient(trust_env=False)
         self.client = anthropic.AsyncAnthropic(
             api_key=self.api_key,
-            base_url=settings.anthropic_base_url,
+            base_url=base_url,
             http_client=http_client,
         )
 

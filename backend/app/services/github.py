@@ -2,15 +2,13 @@ import re
 
 import httpx
 
-from app.core.config import settings
-
 
 class GitHubService:
     BASE_URL = "https://api.github.com"
 
-    def __init__(self, token: str = ""):
-        self.token = token or settings.github_token
-        self.proxy = settings.github_proxy or None
+    def __init__(self, token: str, proxy: str = ""):
+        self.token = token
+        self.proxy = proxy or None
         self.headers = {"Accept": "application/vnd.github.v3+json"}
         if self.token:
             self.headers["Authorization"] = f"token {self.token}"

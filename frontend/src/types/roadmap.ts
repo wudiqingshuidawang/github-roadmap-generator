@@ -8,7 +8,7 @@ export interface RoadmapTask {
   title: string;
   description: string;
   resources: Resource[];
-  difficulty: string;
+  difficulty: "beginner" | "intermediate" | "advanced";
   dependencies: string[];
 }
 

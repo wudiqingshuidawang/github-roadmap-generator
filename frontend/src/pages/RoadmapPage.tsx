@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { getRoadmap } from "../api/roadmap";
 import TimelineView from "../components/TimelineView";
 import MindMapView from "../components/MindMapView";
 import ViewSwitcher from "../components/ViewSwitcher";
@@ -9,33 +7,12 @@ import ExportButton from "../components/ExportButton";
 import FavoriteButton from "../components/FavoriteButton";
 import ProgressBar from "../components/ProgressBar";
 import { copyShareLink } from "../utils/share";
-import { useHistoryStore } from "../stores/useHistoryStore";
-import type { RoadmapData } from "../types/roadmap";
+import { useRoadmap } from "../hooks/useRoadmap";
 
 export default function RoadmapPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const navigate = useNavigate();
-  const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [view, setView] = useState<"timeline" | "mindmap">("timeline");
-  const [progressKey, setProgressKey] = useState(0);
-  const saveToHistory = useHistoryStore((s) => s.saveToHistory);
-
-  useEffect(() => {
-    if (!shareToken) return;
-    getRoadmap(shareToken)
-      .then((data) => {
-        setRoadmap(data);
-        saveToHistory(data);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [shareToken]);
-
-  const handleTaskToggle = useCallback(() => {
-    setProgressKey((k) => k + 1);
-  }, []);
+  const { roadmap, loading, error, view, setView, progressKey, handleTaskToggle } = useRoadmap(shareToken);
 
   const totalTasks = roadmap?.phases?.reduce((sum, p) => sum + p.tasks.length, 0) ?? 0;
 
