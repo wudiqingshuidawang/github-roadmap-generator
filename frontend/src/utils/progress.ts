@@ -13,7 +13,21 @@ function getAllProgress(): Record<string, ProgressMap> {
 }
 
 function saveAllProgress(data: Record<string, ProgressMap>): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Evict oldest entries and retry
+    const keys = Object.keys(data);
+    const evictCount = Math.max(1, Math.floor(keys.length / 3));
+    for (let i = 0; i < evictCount; i++) {
+      delete data[keys[i]];
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // Give up silently
+    }
+  }
 }
 
 export function getProgress(shareToken: string): ProgressMap {

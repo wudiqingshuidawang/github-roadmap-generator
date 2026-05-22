@@ -1,10 +1,13 @@
 import json
+import logging
 import re
 
 import anthropic
 import httpx
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """你是一个项目规划专家。根据用户想做的项目和 GitHub 上真实项目的数据，生成一份详细的学习路线图。
 
@@ -85,7 +88,7 @@ class LLMService:
                         "tokens_used": response.usage.input_tokens + response.usage.output_tokens,
                     }
             except Exception as e:
-                print(f"LLM attempt {attempt+1} failed: {type(e).__name__}: {e}")
+                logger.warning("LLM attempt %d failed: %s: %s", attempt + 1, type(e).__name__, e)
                 if attempt == 2:
                     raise
         return None

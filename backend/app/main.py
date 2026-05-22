@@ -6,6 +6,9 @@ from app.core.config import settings
 
 app = FastAPI(title=settings.app_name)
 
+if not settings.database_url:
+    raise RuntimeError("DATABASE_URL environment variable is required")
+
 # CORS: in production, replace "*" with your actual frontend origin
 app.add_middleware(
     CORSMiddleware,

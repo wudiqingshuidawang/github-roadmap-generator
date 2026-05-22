@@ -37,6 +37,11 @@ class GitHubRef(BaseModel):
     description: str | None = None
 
 
+class LLMOutput(BaseModel):
+    tech_stack: list[TechStackItem]
+    phases: list[Phase]
+
+
 class RoadmapGenerateRequest(BaseModel):
     description: str = Field(min_length=5, max_length=2000, description="Project description")
 

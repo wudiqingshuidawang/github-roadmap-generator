@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/projectpath"
+    database_url: str = ""
     redis_url: str = "redis://localhost:6379/0"
     github_token: str = ""
     github_proxy: str = ""  # e.g. "http://127.0.0.1:7897"

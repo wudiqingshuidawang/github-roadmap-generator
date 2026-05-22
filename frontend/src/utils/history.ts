@@ -34,7 +34,18 @@ export function saveToHistory(roadmap: RoadmapData): void {
   // Trim
   while (history.length > MAX_ITEMS) history.pop();
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  } catch {
+    // Evict oldest entries and retry
+    const evictCount = Math.max(1, Math.floor(history.length / 3));
+    history.splice(-evictCount);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    } catch {
+      // Give up silently
+    }
+  }
 }
 
 export function getHistory(): HistoryItem[] {

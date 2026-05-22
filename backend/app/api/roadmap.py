@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +10,7 @@ from app.core.database import get_db
 from app.core.redis import get_redis
 from app.models.roadmap import Project, Roadmap
 from app.schemas.roadmap import (
+    LLMOutput,
     RoadmapDetail,
     RoadmapGenerateRequest,
     RoadmapGenerateResponse,
@@ -17,6 +19,7 @@ from app.services.cache import CacheService
 from app.services.github import GitHubService
 from app.services.llm import LLMService
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -55,7 +58,7 @@ async def generate_roadmap(
                     analyses.append(f"- {analysis['full_name']}: {analysis['readme_excerpt'][:500]}")
             github_context = "\n".join(analyses)
     except Exception:
-        pass  # GitHub API failure is non-fatal
+        logger.warning("GitHub API request failed, continuing without context", exc_info=True)
 
     # Generate roadmap with LLM
     llm = LLMService()
@@ -67,6 +70,12 @@ async def generate_roadmap(
     if not result:
         raise HTTPException(status_code=502, detail="Failed to generate roadmap")
 
+    # Validate LLM output schema
+    try:
+        llm_output = LLMOutput.model_validate(result["data"])
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM output validation failed: {e}")
+
     # Save to database with proper transaction handling
     try:
         project = Project(title=request.description[:255], description=request.description)
@@ -74,12 +83,19 @@ async def generate_roadmap(
         await db.flush()
 
         share_token = secrets.token_urlsafe(16)[:32]
+        for _ in range(10):
+            exists = await db.execute(
+                select(Roadmap.id).where(Roadmap.share_token == share_token)
+            )
+            if not exists.scalar_one_or_none():
+                break
+            share_token = secrets.token_urlsafe(16)[:32]
         roadmap = Roadmap(
             project_id=project.id,
             share_token=share_token,
             github_refs=github_refs,
-            tech_stack=result["data"].get("tech_stack"),
-            phases=result["data"].get("phases"),
+            tech_stack=llm_output.model_dump()["tech_stack"],
+            phases=llm_output.model_dump()["phases"],
             llm_model=result["model"],
             llm_tokens_used=result["tokens_used"],
         )
