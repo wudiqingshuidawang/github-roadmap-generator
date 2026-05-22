@@ -16,13 +16,13 @@ export default function HomePage() {
               onClick={() => navigate("/trends")}
               className="flex items-center gap-1 px-2.5 py-1.5 text-xs md:text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             >
-              📊 Trends
+              📊 趋势分析
             </button>
             <button
               onClick={() => navigate("/history")}
               className="flex items-center gap-1 px-2.5 py-1.5 text-xs md:text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             >
-              📋 History ({historyCount})
+              📋 历史记录 ({historyCount})
             </button>
           </>
         )}
@@ -33,22 +33,22 @@ export default function HomePage() {
           Project<span className="text-blue-600">Path</span>
         </h1>
         <p className="text-base md:text-xl text-gray-600 max-w-lg mx-auto">
-          Describe your project idea, and AI will generate a step-by-step learning roadmap based on real GitHub projects.
+          描述你的项目想法，AI 将基于真实 GitHub 项目生成学习路线图。
         </p>
       </div>
       <ProjectInput />
       <div className="mt-10 md:mt-16 grid grid-cols-3 gap-4 md:gap-8 text-center max-w-3xl w-full">
         <div>
           <div className="text-xl md:text-2xl font-bold text-blue-600">GitHub</div>
-          <p className="text-xs md:text-sm text-gray-500 mt-1">Real project data</p>
+          <p className="text-xs md:text-sm text-gray-500 mt-1">真实项目数据</p>
         </div>
         <div>
           <div className="text-xl md:text-2xl font-bold text-blue-600">AI</div>
-          <p className="text-xs md:text-sm text-gray-500 mt-1">Smart roadmap generation</p>
+          <p className="text-xs md:text-sm text-gray-500 mt-1">智能路线图生成</p>
         </div>
         <div>
-          <div className="text-xl md:text-2xl font-bold text-blue-600">2 Views</div>
-          <p className="text-xs md:text-sm text-gray-500 mt-1">Timeline + Mind map</p>
+          <div className="text-xl md:text-2xl font-bold text-blue-600">双视图</div>
+          <p className="text-xs md:text-sm text-gray-500 mt-1">时间线 + 思维导图</p>
         </div>
       </div>
     </div>
