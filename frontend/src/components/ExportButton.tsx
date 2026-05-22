@@ -1,6 +1,5 @@
 import { useState } from "react";
-import html2canvas from "html2canvas-pro";
-import { jsPDF } from "jspdf";
+import toast from "react-hot-toast";
 
 interface Props {
   title: string;
@@ -9,28 +8,26 @@ interface Props {
 export default function ExportButton({ title }: Props) {
   const [exporting, setExporting] = useState(false);
 
-  const captureElement = async (): Promise<HTMLCanvasElement | null> => {
-    const el = document.getElementById("roadmap-content");
-    if (!el) return null;
-    return html2canvas(el, {
-      scale: 2,
-      backgroundColor: "#f9fafb",
-      useCORS: true,
-    });
-  };
-
   const handleExportPNG = async () => {
     setExporting(true);
+    const loading = toast.loading("正在导出 PNG...");
     try {
-      const canvas = await captureElement();
-      if (!canvas) return;
+      const html2canvas = (await import("html2canvas-pro")).default;
+      const el = document.getElementById("roadmap-content");
+      if (!el) throw new Error("找不到路线图内容");
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        backgroundColor: "#f9fafb",
+        useCORS: true,
+      });
       const link = document.createElement("a");
       link.download = `${title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, "_")}_roadmap.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
+      toast.success("PNG 导出成功！", { id: loading });
     } catch (e) {
       console.error("Export PNG failed:", e);
-      alert("Export failed, please try again.");
+      toast.error("导出失败，请重试", { id: loading });
     } finally {
       setExporting(false);
     }
@@ -38,14 +35,25 @@ export default function ExportButton({ title }: Props) {
 
   const handleExportPDF = async () => {
     setExporting(true);
+    const loading = toast.loading("正在导出 PDF...");
     try {
-      const canvas = await captureElement();
-      if (!canvas) return;
+      const [html2canvasMod, jsPDFMod] = await Promise.all([
+        import("html2canvas-pro"),
+        import("jspdf"),
+      ]);
+      const html2canvas = html2canvasMod.default;
+      const { jsPDF } = jsPDFMod;
+
+      const el = document.getElementById("roadmap-content");
+      if (!el) throw new Error("找不到路线图内容");
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        backgroundColor: "#f9fafb",
+        useCORS: true,
+      });
 
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-
-      // A4 dimensions in points
       const pdfWidth = 595.28;
       const pdfHeight = 841.89;
       const margin = 40;
@@ -59,14 +67,11 @@ export default function ExportButton({ title }: Props) {
         format: "a4",
       });
 
-      // If content is taller than one page, split across pages
       let y = 0;
       const pageContentHeight = (pdfHeight - margin * 2) / ratio;
 
       while (y < imgHeight) {
         if (y > 0) pdf.addPage();
-
-        // Create a slice of the canvas for this page
         const sliceCanvas = document.createElement("canvas");
         sliceCanvas.width = imgWidth;
         const sliceHeight = Math.min(pageContentHeight, imgHeight - y);
@@ -77,14 +82,14 @@ export default function ExportButton({ title }: Props) {
           const sliceData = sliceCanvas.toDataURL("image/png");
           pdf.addImage(sliceData, "PNG", margin, margin, contentWidth, sliceHeight * ratio);
         }
-
         y += pageContentHeight;
       }
 
       pdf.save(`${title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, "_")}_roadmap.pdf`);
+      toast.success("PDF 导出成功！", { id: loading });
     } catch (e) {
       console.error("Export PDF failed:", e);
-      alert("Export failed, please try again.");
+      toast.error("导出失败，请重试", { id: loading });
     } finally {
       setExporting(false);
     }
@@ -97,14 +102,14 @@ export default function ExportButton({ title }: Props) {
         disabled={exporting}
         className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
       >
-        📷 {exporting ? "Exporting..." : "PNG"}
+        📷 {exporting ? "导出中..." : "PNG"}
       </button>
       <button
         onClick={handleExportPDF}
         disabled={exporting}
         className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
       >
-        📄 {exporting ? "Exporting..." : "PDF"}
+        📄 {exporting ? "导出中..." : "PDF"}
       </button>
     </div>
   );

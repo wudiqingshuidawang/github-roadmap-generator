@@ -14,9 +14,9 @@ export default function ProgressBar({ shareToken, totalTasks }: Props) {
   return (
     <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-700">Learning Progress</span>
+        <span className="text-sm font-medium text-gray-700">学习进度</span>
         <span className="text-sm text-gray-500">
-          {done}/{total} tasks · {percent}%
+          {done}/{total} 个任务 · {percent}%
         </span>
       </div>
       <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -37,7 +37,7 @@ export default function ProgressBar({ shareToken, totalTasks }: Props) {
       </div>
       {percent === 100 && (
         <p className="text-sm text-green-600 mt-2 font-medium">
-          🎉 Congratulations! You've completed all tasks!
+          🎉 恭喜！你已完成所有任务！
         </p>
       )}
     </div>

@@ -14,7 +14,7 @@ export default function ViewSwitcher({ view, onViewChange }: Props) {
             : "text-gray-600 hover:text-gray-900"
         }`}
       >
-        Timeline
+        📅 时间线
       </button>
       <button
         onClick={() => onViewChange("mindmap")}
@@ -24,7 +24,7 @@ export default function ViewSwitcher({ view, onViewChange }: Props) {
             : "text-gray-600 hover:text-gray-900"
         }`}
       >
-        Mind Map
+        🧠 思维导图
       </button>
     </div>
   );

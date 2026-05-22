@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import toast from "react-hot-toast";
 import type { Phase, RoadmapTask } from "../types/roadmap";
 import { isTaskDone, toggleTask } from "../utils/progress";
 
@@ -8,7 +9,13 @@ interface Props {
   onTaskToggle?: () => void;
 }
 
-function TaskCard({ task, shareToken, phaseIdx, taskIdx, onToggle }: {
+function TaskCard({
+  task,
+  shareToken,
+  phaseIdx,
+  taskIdx,
+  onToggle,
+}: {
   task: RoadmapTask;
   shareToken: string;
   phaseIdx: number;
@@ -23,9 +30,18 @@ function TaskCard({ task, shareToken, phaseIdx, taskIdx, onToggle }: {
     advanced: "bg-red-100 text-red-800",
   };
 
+  const difficultyLabel: Record<string, string> = {
+    beginner: "入门",
+    intermediate: "进阶",
+    advanced: "高级",
+  };
+
   const handleToggle = useCallback(() => {
     const newState = toggleTask(shareToken, phaseIdx, taskIdx);
     setDone(newState);
+    toast(newState ? "任务已完成 ✓" : "已取消完成", {
+      icon: newState ? "✅" : "↩️",
+    });
     onToggle?.();
   }, [shareToken, phaseIdx, taskIdx, onToggle]);
 
@@ -36,10 +52,19 @@ function TaskCard({ task, shareToken, phaseIdx, taskIdx, onToggle }: {
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* Checkbox */}
         <button
           onClick={handleToggle}
-          className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+          role="checkbox"
+          aria-checked={done}
+          aria-label={`${done ? "取消完成" : "标记完成"}: ${task.title}`}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === " " || e.key === "Enter") {
+              e.preventDefault();
+              handleToggle();
+            }
+          }}
+          className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 ${
             done
               ? "bg-green-500 border-green-500 text-white"
               : "border-gray-300 hover:border-blue-400"
@@ -52,7 +77,6 @@ function TaskCard({ task, shareToken, phaseIdx, taskIdx, onToggle }: {
           )}
         </button>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h4 className={`font-medium ${done ? "text-gray-400 line-through" : "text-gray-900"}`}>
@@ -61,7 +85,7 @@ function TaskCard({ task, shareToken, phaseIdx, taskIdx, onToggle }: {
             <span
               className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${difficultyColor[task.difficulty] || "bg-gray-100"}`}
             >
-              {task.difficulty}
+              {difficultyLabel[task.difficulty] || task.difficulty}
             </span>
           </div>
           <p className={`text-sm mt-2 ${done ? "text-gray-400" : "text-gray-600"}`}>
@@ -94,14 +118,12 @@ export default function TimelineView({ phases, shareToken, onTaskToggle }: Props
 
   return (
     <div className="relative">
-      {/* Vertical line */}
       <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-blue-200" />
 
       <div className="space-y-8">
         {phases.map((phase, i) => {
-          const phaseStartIdx = globalTaskIdx;
           const tasks = phase.tasks.map((task, j) => {
-            const idx = globalTaskIdx++;
+            globalTaskIdx++;
             return (
               <TaskCard
                 key={j}
@@ -116,19 +138,12 @@ export default function TimelineView({ phases, shareToken, onTaskToggle }: Props
 
           return (
             <div key={i} className="relative pl-16">
-              {/* Phase dot */}
               <div className="absolute left-4 w-5 h-5 bg-blue-600 rounded-full border-4 border-white shadow" />
-
-              {/* Phase header */}
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-gray-900">{phase.name}</h3>
                 <span className="text-sm text-gray-500">{phase.duration}</span>
               </div>
-
-              {/* Tasks */}
-              <div className="space-y-3">
-                {tasks}
-              </div>
+              <div className="space-y-3">{tasks}</div>
             </div>
           );
         })}

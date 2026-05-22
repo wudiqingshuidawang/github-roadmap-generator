@@ -5,6 +5,27 @@ import { getFavorites } from "../utils/favorites";
 
 type SortMode = "newest" | "oldest" | "phases";
 
+// Safe highlight: render text as spans, no dangerouslySetInnerHTML
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-yellow-200 text-gray-900 rounded px-0.5">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export default function HistoryPage() {
   const navigate = useNavigate();
   const [history, setHistory] = useState<HistoryItem[]>(getHistory());
@@ -13,18 +34,15 @@ export default function HistoryPage() {
   const [selectedTech, setSelectedTech] = useState<string>("all");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
 
-  // Extract all unique tech tags
   const allTechs = useMemo(() => {
     const set = new Set<string>();
     history.forEach((h) => h.tech_stack.forEach((t) => set.add(t)));
     return Array.from(set).sort();
   }, [history]);
 
-  // Filter + search + sort
   const filtered = useMemo(() => {
     let items = [...history];
 
-    // Text search
     if (search.trim()) {
       const q = search.toLowerCase();
       items = items.filter(
@@ -35,12 +53,10 @@ export default function HistoryPage() {
       );
     }
 
-    // Tech filter
     if (selectedTech !== "all") {
       items = items.filter((h) => h.tech_stack.includes(selectedTech));
     }
 
-    // Favorites first
     items.sort((a, b) => {
       const aFav = favorites.has(a.share_token) ? 0 : 1;
       const bFav = favorites.has(b.share_token) ? 0 : 1;
@@ -62,7 +78,7 @@ export default function HistoryPage() {
   }, [history, search, selectedTech, sortMode, favorites]);
 
   const handleClear = () => {
-    if (confirm("Clear all history?")) {
+    if (confirm("确定清空所有历史记录？")) {
       clearHistory();
       setHistory([]);
     }
@@ -70,7 +86,7 @@ export default function HistoryPage() {
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString("en-US", {
+      return new Date(iso).toLocaleDateString("zh-CN", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -78,22 +94,6 @@ export default function HistoryPage() {
     } catch {
       return iso;
     }
-  };
-
-  // Highlight matching text
-  const highlightText = (text: string) => {
-    if (!search.trim()) return text;
-    const regex = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark key={i} className="bg-yellow-200 text-gray-900 rounded px-0.5">
-          {part}
-        </mark>
-      ) : (
-        part
-      )
-    );
   };
 
   return (
@@ -106,14 +106,14 @@ export default function HistoryPage() {
               onClick={() => navigate("/")}
               className="text-sm text-blue-600 hover:underline mb-2 block"
             >
-              ← Back to Home
+              ← 返回首页
             </button>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              📋 History
+              📋 历史记录
             </h1>
             <p className="text-gray-500 mt-1 text-sm md:text-base">
-              Showing {filtered.length} / {history.length} roadmaps
-              {favorites.size > 0 && ` · ⭐ ${favorites.size} favorited`}
+              显示 {filtered.length} / {history.length} 条记录
+              {favorites.size > 0 && ` · ⭐ ${favorites.size} 条收藏`}
             </p>
           </div>
           {history.length > 0 && (
@@ -121,7 +121,7 @@ export default function HistoryPage() {
               onClick={handleClear}
               className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors self-start"
             >
-              Clear All
+              清空全部
             </button>
           )}
         </div>
@@ -129,7 +129,6 @@ export default function HistoryPage() {
         {/* Search + Filters */}
         {history.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6 shadow-sm space-y-3">
-            {/* Search */}
             <div className="relative">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -146,7 +145,7 @@ export default function HistoryPage() {
               </svg>
               <input
                 type="text"
-                placeholder="Search by name, description, or tech..."
+                placeholder="搜索名称、描述或技术栈..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -161,16 +160,14 @@ export default function HistoryPage() {
               )}
             </div>
 
-            {/* Filters row */}
             <div className="flex flex-wrap gap-3">
-              {/* Tech filter */}
               {allTechs.length > 0 && (
                 <select
                   value={selectedTech}
                   onChange={(e) => setSelectedTech(e.target.value)}
                   className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Technologies</option>
+                  <option value="all">全部技术栈</option>
                   {allTechs.map((t) => (
                     <option key={t} value={t}>
                       {t}
@@ -179,18 +176,16 @@ export default function HistoryPage() {
                 </select>
               )}
 
-              {/* Sort */}
               <select
                 value={sortMode}
                 onChange={(e) => setSortMode(e.target.value as SortMode)}
                 className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="phases">Most Phases</option>
+                <option value="newest">最新优先</option>
+                <option value="oldest">最早优先</option>
+                <option value="phases">阶段最多</option>
               </select>
 
-              {/* Clear filters */}
               {(search || selectedTech !== "all") && (
                 <button
                   onClick={() => {
@@ -199,7 +194,7 @@ export default function HistoryPage() {
                   }}
                   className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  Clear Filters
+                  清除筛选
                 </button>
               )}
             </div>
@@ -211,15 +206,15 @@ export default function HistoryPage() {
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg mb-4">
               {history.length === 0
-                ? "No roadmaps yet"
-                : "No results match your search"}
+                ? "还没有路线图"
+                : "没有匹配的结果"}
             </p>
             {history.length === 0 ? (
               <button
                 onClick={() => navigate("/")}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Generate your first roadmap
+                生成你的第一个路线图
               </button>
             ) : (
               <button
@@ -229,7 +224,7 @@ export default function HistoryPage() {
                 }}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Clear filters
+                清除筛选
               </button>
             )}
           </div>
@@ -252,18 +247,18 @@ export default function HistoryPage() {
                       <div className="flex items-center gap-2">
                         {isFav && <span className="text-yellow-500 flex-shrink-0">⭐</span>}
                         <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate text-sm md:text-base">
-                          {highlightText(item.title)}
+                          <HighlightText text={item.title} query={search} />
                         </h3>
                       </div>
                       <p className="text-xs md:text-sm text-gray-500 mt-1 line-clamp-2">
-                        {highlightText(item.description)}
+                        <HighlightText text={item.description} query={search} />
                       </p>
                       <div className="flex items-center gap-2 md:gap-4 mt-3 flex-wrap">
                         <span className="text-xs text-gray-400">
                           {formatDate(item.created_at)}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {item.phase_count} phases
+                          {item.phase_count} 个阶段
                         </span>
                         {item.tech_stack.slice(0, 3).map((tech, i) => (
                           <span

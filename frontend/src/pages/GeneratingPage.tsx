@@ -16,7 +16,7 @@ export default function GeneratingPage() {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 120_000); // 2 min timeout
+    const timeout = setTimeout(() => controller.abort(), 120_000);
 
     generateRoadmap(description)
       .then((result) => {
@@ -26,9 +26,9 @@ export default function GeneratingPage() {
       .catch((err) => {
         clearTimeout(timeout);
         if (err.name === "AbortError") {
-          setError("Generation timed out. The server may be busy, please try again.");
+          setError("生成超时，服务器可能繁忙，请重试。");
         } else {
-          setError(err.message || "Failed to generate roadmap");
+          setError(err.message || "生成失败");
         }
       });
 
@@ -47,7 +47,7 @@ export default function GeneratingPage() {
             onClick={() => navigate("/")}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Back to Home
+            返回首页
           </button>
         </div>
       </div>

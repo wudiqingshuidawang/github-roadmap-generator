@@ -9,7 +9,7 @@ export default function ProjectInput() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (description.trim().length < 5) {
-      setError("Please describe your project in at least 5 characters");
+      setError("请用至少 5 个字符描述你的项目");
       return;
     }
     navigate("/generating", { state: { description } });
@@ -21,7 +21,7 @@ export default function ProjectInput() {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe your project idea... e.g., 'I want to build an e-commerce website with shopping cart and payment'"
+          placeholder="描述你的项目想法... 例如：'我想做一个带购物车和支付功能的电商网站'"
           className="w-full h-40 p-4 text-lg border-2 border-gray-200 rounded-xl resize-none focus:border-blue-500 focus:outline-none transition-colors"
         />
       </div>
@@ -31,7 +31,7 @@ export default function ProjectInput() {
         disabled={description.trim().length < 5}
         className="mt-4 px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
       >
-        Generate Roadmap
+        生成路线图
       </button>
     </form>
   );

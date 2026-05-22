@@ -239,34 +239,34 @@ export default function TrendsPage() {
             onClick={() => navigate("/")}
             className="text-sm text-blue-600 hover:underline mb-2 block"
           >
-            ← Back to Home
+            ← 返回首页
           </button>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            📊 Trends
+            📊 趋势分析
           </h1>
           <p className="text-gray-500 mt-1 text-sm md:text-base">
-            Insights from {history.length} generated roadmaps
+            基于 {history.length} 条路线图的分析
           </p>
         </div>
 
         {/* Stats cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
           {[
-            { label: "Roadmaps", value: history.length, icon: "📋" },
+            { label: "路线图", value: history.length, icon: "📋" },
             {
-              label: "Technologies",
+              label: "技术栈",
               value: new Set(history.flatMap((h: HistoryEntry) => h.tech_stack)).size,
               icon: "🛠",
             },
             {
-              label: "Avg Phases",
+              label: "平均阶段",
               value: (
                 history.reduce((s: number, h: HistoryEntry) => s + h.phase_count, 0) / history.length
               ).toFixed(1),
               icon: "📐",
             },
             {
-              label: "This Month",
+              label: "本月",
               value: history.filter((h: HistoryEntry) => {
                 const d = new Date(h.created_at);
                 const now = new Date();
@@ -292,25 +292,25 @@ export default function TrendsPage() {
         {techDistribution.length > 0 && (
           <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-100 shadow-sm mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              🛠 Technology Distribution
+              🛠 技术栈分布
             </h2>
             <DonutChart data={techDistribution} />
           </div>
         )}
 
-        {/* Complexity Distribution */}
+        {/* 复杂度分布 */}
         <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-100 shadow-sm mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            📐 Complexity Distribution
+            📐 复杂度分布
           </h2>
           <BarChart data={complexityData} />
         </div>
 
-        {/* Monthly Activity */}
+        {/* 月度活动 */}
         {monthlyData.length > 1 && (
           <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-100 shadow-sm mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              📅 Monthly Activity
+              📅 月度活动
             </h2>
             <BarChart data={monthlyData} />
           </div>
@@ -320,7 +320,7 @@ export default function TrendsPage() {
         {techDistribution.length > 0 && (
           <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-100 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              🏆 Top Technologies
+              🏆 热门技术栈
             </h2>
             <div className="space-y-2">
               {techDistribution.map((t, i) => {

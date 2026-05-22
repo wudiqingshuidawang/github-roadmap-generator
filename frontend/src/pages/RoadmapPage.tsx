@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { getRoadmap } from "../api/roadmap";
 import TimelineView from "../components/TimelineView";
 import MindMapView from "../components/MindMapView";
@@ -18,7 +19,6 @@ export default function RoadmapPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [view, setView] = useState<"timeline" | "mindmap">("timeline");
-  const [copied, setCopied] = useState(false);
   const [progressKey, setProgressKey] = useState(0);
 
   useEffect(() => {
@@ -50,12 +50,12 @@ export default function RoadmapPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-red-500 text-base md:text-lg mb-4">{error || "Roadmap not found"}</p>
+          <p className="text-red-500 text-base md:text-lg mb-4">{error || "路线图未找到"}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Retry
+            重试
           </button>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function RoadmapPage() {
             onClick={() => navigate("/")}
             className="text-sm text-blue-600 hover:underline mb-2 block"
           >
-            ← Back to Home
+            ← 返回首页
           </button>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{roadmap.title}</h1>
           <p className="text-sm md:text-base text-gray-600">{roadmap.description}</p>
@@ -122,7 +122,7 @@ export default function RoadmapPage() {
 
         {/* Share link */}
         <div className="mt-8 md:mt-12 p-3 md:p-4 bg-white rounded-lg border text-center">
-          <p className="text-xs md:text-sm text-gray-500 mb-2">Share this roadmap:</p>
+          <p className="text-xs md:text-sm text-gray-500 mb-2">分享此路线图：</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <code className="text-blue-600 break-all text-xs md:text-sm">
               {window.location.origin}/roadmap/{roadmap.share_token}
@@ -130,12 +130,11 @@ export default function RoadmapPage() {
             <button
               onClick={async () => {
                 await copyShareLink(roadmap.share_token);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
+                toast.success("链接已复制！");
               }}
               className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
             >
-              {copied ? "Copied!" : "Copy"}
+              复制链接
             </button>
           </div>
         </div>
