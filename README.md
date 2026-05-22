@@ -1,6 +1,6 @@
 # github-roadmap-generator
 
-AI-powered project learning roadmap generator. Describe your project idea, and get a personalized learning path based on real GitHub projects.
+搜集 GitHub 教程 + 思维导图 + 时间线 — AI 驱动的项目学习路径生成器。描述你的项目想法，基于真实 GitHub 项目生成个性化的学习路线图，支持时间线和思维导图两种视图。
 
 ## Features
 
@@ -16,14 +16,14 @@ AI-powered project learning roadmap generator. Describe your project idea, and g
 - Docker & Docker Compose
 - Node.js 18+
 - Python 3.11+
-- OpenAI API key
+- Anthropic API key
 
 ### Setup
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/projectpath.git
-   cd projectpath
+   git clone https://github.com/wudiqingshuidawang/github-roadmap-generator.git
+   cd github-roadmap-generator
    ```
 
 2. Start database services:
@@ -34,7 +34,7 @@ AI-powered project learning roadmap generator. Describe your project idea, and g
 3. Set up backend:
    ```bash
    cd backend
-   cp .env.example .env  # Add your OpenAI API key
+   cp .env.example .env  # Add your Anthropic API key
    pip install -e .
    alembic upgrade head
    uvicorn app.main:app --reload
@@ -47,13 +47,11 @@ AI-powered project learning roadmap generator. Describe your project idea, and g
    npm run dev
    ```
 
-
-
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Tailwind CSS, D3.js
 - **Backend**: Python, FastAPI, SQLAlchemy, PostgreSQL, Redis
-- **APIs**: GitHub REST API, OpenAI API
+- **APIs**: GitHub REST API, Anthropic API
 
 ## License
 

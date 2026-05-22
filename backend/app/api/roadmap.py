@@ -1,5 +1,5 @@
+import hashlib
 import secrets
-import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -20,6 +20,11 @@ from app.services.llm import LLMService
 router = APIRouter()
 
 
+def _cache_key(description: str) -> str:
+    """Hash description to a fixed-length cache key."""
+    return f"roadmap:{hashlib.sha256(description.strip().lower().encode()).hexdigest()[:16]}"
+
+
 @router.post("/generate", response_model=RoadmapGenerateResponse)
 async def generate_roadmap(
     request: RoadmapGenerateRequest,
@@ -28,7 +33,8 @@ async def generate_roadmap(
     # Check cache first
     redis_client = await get_redis()
     cache = CacheService(redis_client)
-    cached = await cache.get(request.description)
+    cache_key = _cache_key(request.description)
+    cached = await cache.get(cache_key)
     if cached:
         return RoadmapGenerateResponse(
             id=cached["id"], share_token=cached["share_token"]
@@ -39,16 +45,15 @@ async def generate_roadmap(
     github_refs = []
     github_context = ""
     try:
-        projects = await github.search_projects(request.description, limit=3)
+        projects = await github.search_projects(request.description, limit=5)
         github_refs = projects
-        analyses = []
-        for proj in projects[:2]:
-            analysis = await github.analyze_project(proj["full_name"])
-            analyses.append(analysis)
-        github_context = "\n".join(
-            f"- {a['full_name']}: {', '.join(s['file'] for s in a['tech_stack'])}"
-            for a in analyses
-        )
+        if projects:
+            analyses = []
+            for p in projects[:3]:
+                analysis = await github.analyze_project(p["full_name"])
+                if analysis.get("readme_excerpt"):
+                    analyses.append(f"- {analysis['full_name']}: {analysis['readme_excerpt'][:500]}")
+            github_context = "\n".join(analyses)
     except Exception:
         pass  # GitHub API failure is non-fatal
 
@@ -62,27 +67,31 @@ async def generate_roadmap(
     if not result:
         raise HTTPException(status_code=502, detail="Failed to generate roadmap")
 
-    # Save to database
-    project = Project(title=request.description[:255], description=request.description)
-    db.add(project)
-    await db.flush()
+    # Save to database with proper transaction handling
+    try:
+        project = Project(title=request.description[:255], description=request.description)
+        db.add(project)
+        await db.flush()
 
-    share_token = secrets.token_urlsafe(16)[:32]
-    roadmap = Roadmap(
-        project_id=project.id,
-        share_token=share_token,
-        github_refs=github_refs,
-        tech_stack=result["data"].get("tech_stack"),
-        phases=result["data"].get("phases"),
-        llm_model=result["model"],
-        llm_tokens_used=result["tokens_used"],
-    )
-    db.add(roadmap)
-    await db.commit()
-    await db.refresh(roadmap)
+        share_token = secrets.token_urlsafe(16)[:32]
+        roadmap = Roadmap(
+            project_id=project.id,
+            share_token=share_token,
+            github_refs=github_refs,
+            tech_stack=result["data"].get("tech_stack"),
+            phases=result["data"].get("phases"),
+            llm_model=result["model"],
+            llm_tokens_used=result["tokens_used"],
+        )
+        db.add(roadmap)
+        await db.commit()
+        await db.refresh(roadmap)
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to save roadmap")
 
     # Cache the result
-    await cache.set(request.description, {
+    await cache.set(cache_key, {
         "id": str(roadmap.id),
         "share_token": share_token,
     })

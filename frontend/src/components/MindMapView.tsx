@@ -29,17 +29,21 @@ function buildTree(phases: Phase[], title: string): MindMapNode {
 }
 
 export default function MindMapView({ phases, title }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !containerRef.current) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const width = 900;
-    const height = 600;
-    const margin = { top: 20, right: 120, bottom: 20, left: 120 };
+    // Use container width for responsive sizing
+    const containerWidth = containerRef.current.clientWidth;
+    const width = Math.max(containerWidth, 600);
+    const nodeCount = phases.reduce((sum, p) => sum + p.tasks.length + 1, 0) + 1;
+    const height = Math.max(500, nodeCount * 28);
+    const margin = { top: 20, right: 160, bottom: 20, left: 140 };
 
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
@@ -63,12 +67,11 @@ export default function MindMapView({ phases, title }: Props) {
       .attr("fill", "none")
       .attr("stroke", "#cbd5e1")
       .attr("stroke-width", 1.5)
-      .attr(
-        "d",
-        d3.linkHorizontal()
-          .x((d: any) => d.y)
-          .y((d: any) => d.x)
-      );
+      .attr("d", (() => {
+        const link = d3.linkHorizontal() as any;
+        link.x((d: any) => d.y).y((d: any) => d.x);
+        return link;
+      })() as any);
 
     // Nodes
     const node = g
@@ -99,7 +102,7 @@ export default function MindMapView({ phases, title }: Props) {
   }, [phases, title]);
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border overflow-x-auto">
+    <div ref={containerRef} className="bg-white rounded-xl p-4 shadow-sm border overflow-x-auto">
       <svg ref={svgRef} className="w-full" style={{ minHeight: "500px" }} />
     </div>
   );

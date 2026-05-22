@@ -38,7 +38,7 @@ class GitHubRef(BaseModel):
 
 
 class RoadmapGenerateRequest(BaseModel):
-    description: str = Field(min_length=5, max_length=1000, description="Project description")
+    description: str = Field(min_length=5, max_length=2000, description="Project description")
 
 
 class RoadmapGenerateResponse(BaseModel):
