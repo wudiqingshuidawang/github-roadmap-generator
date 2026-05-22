@@ -3,6 +3,7 @@ import GeneratingPage from "./pages/GeneratingPage";
 import HistoryPage from "./pages/HistoryPage";
 import HomePage from "./pages/HomePage";
 import RoadmapPage from "./pages/RoadmapPage";
+import TrendsPage from "./pages/TrendsPage";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/generating" element={<GeneratingPage />} />
         <Route path="/roadmap/:shareToken" element={<RoadmapPage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/trends" element={<TrendsPage />} />
       </Routes>
     </BrowserRouter>
   );
