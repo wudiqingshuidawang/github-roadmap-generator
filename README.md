@@ -47,7 +47,7 @@ AI-powered project learning roadmap generator. Describe your project idea, and g
    npm run dev
    ```
 
-5. Open http://localhost:5173
+
 
 ## Tech Stack
 
