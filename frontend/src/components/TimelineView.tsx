@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import toast from "react-hot-toast";
 import type { Phase, RoadmapTask } from "../types/roadmap";
-import { isTaskDone, toggleTask } from "../utils/progress";
+import { useProgressStore } from "../stores/useProgressStore";
 
 interface Props {
   phases: Phase[];
@@ -22,7 +22,8 @@ function TaskCard({
   taskIdx: number;
   onToggle?: () => void;
 }) {
-  const [done, setDone] = useState(() => isTaskDone(shareToken, phaseIdx, taskIdx));
+  const done = useProgressStore((s) => s.isTaskDone(shareToken, phaseIdx, taskIdx));
+  const toggleTask = useProgressStore((s) => s.toggleTask);
 
   const difficultyColor: Record<string, string> = {
     beginner: "bg-green-100 text-green-800",
@@ -38,12 +39,11 @@ function TaskCard({
 
   const handleToggle = useCallback(() => {
     const newState = toggleTask(shareToken, phaseIdx, taskIdx);
-    setDone(newState);
     toast(newState ? "任务已完成 ✓" : "已取消完成", {
       icon: newState ? "✅" : "↩️",
     });
     onToggle?.();
-  }, [shareToken, phaseIdx, taskIdx, onToggle]);
+  }, [shareToken, phaseIdx, taskIdx, onToggle, toggleTask]);
 
   return (
     <div

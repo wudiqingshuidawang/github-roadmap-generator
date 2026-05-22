@@ -9,7 +9,7 @@ import ExportButton from "../components/ExportButton";
 import FavoriteButton from "../components/FavoriteButton";
 import ProgressBar from "../components/ProgressBar";
 import { copyShareLink } from "../utils/share";
-import { saveToHistory } from "../utils/history";
+import { useHistoryStore } from "../stores/useHistoryStore";
 import type { RoadmapData } from "../types/roadmap";
 
 export default function RoadmapPage() {
@@ -20,6 +20,7 @@ export default function RoadmapPage() {
   const [error, setError] = useState("");
   const [view, setView] = useState<"timeline" | "mindmap">("timeline");
   const [progressKey, setProgressKey] = useState(0);
+  const saveToHistory = useHistoryStore((s) => s.saveToHistory);
 
   useEffect(() => {
     if (!shareToken) return;

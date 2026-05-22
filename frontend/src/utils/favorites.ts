@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use useFavoritesStore from stores/useFavoritesStore.ts instead.
+ * Kept for backward compatibility only.
+ */
 const STORAGE_KEY = "projectpath_favorites";
 
 export function getFavorites(): Set<string> {

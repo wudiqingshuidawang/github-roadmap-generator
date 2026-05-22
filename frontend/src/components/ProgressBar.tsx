@@ -1,4 +1,4 @@
-import { getProgressStats } from "../utils/progress";
+import { useProgressStore } from "../stores/useProgressStore";
 
 interface Props {
   shareToken: string;
@@ -7,7 +7,10 @@ interface Props {
 }
 
 export default function ProgressBar({ shareToken, totalTasks }: Props) {
-  const { done, total, percent } = getProgressStats(shareToken, totalTasks);
+  const progress = useProgressStore((s) => s.allProgress[shareToken]);
+  const done = Object.values(progress ?? {}).filter(Boolean).length;
+  const total = totalTasks;
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
   if (total === 0) return null;
 

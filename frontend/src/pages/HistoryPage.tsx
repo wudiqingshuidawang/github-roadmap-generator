@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getHistory, clearHistory, type HistoryItem } from "../utils/history";
-import { getFavorites } from "../utils/favorites";
+import { useHistoryStore } from "../stores/useHistoryStore";
+import { useFavoritesStore } from "../stores/useFavoritesStore";
 
 type SortMode = "newest" | "oldest" | "phases";
 
@@ -28,8 +28,9 @@ function HighlightText({ text, query }: { text: string; query: string }) {
 
 export default function HistoryPage() {
   const navigate = useNavigate();
-  const [history, setHistory] = useState<HistoryItem[]>(getHistory());
-  const [favorites] = useState(() => getFavorites());
+  const history = useHistoryStore((s) => s.history);
+  const clearHistory = useHistoryStore((s) => s.clearHistory);
+  const favorites = useFavoritesStore((s) => s.getFavorites());
   const [search, setSearch] = useState("");
   const [selectedTech, setSelectedTech] = useState<string>("all");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
@@ -80,7 +81,6 @@ export default function HistoryPage() {
   const handleClear = () => {
     if (confirm("确定清空所有历史记录？")) {
       clearHistory();
-      setHistory([]);
     }
   };
 

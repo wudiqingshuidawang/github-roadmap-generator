@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use useProgressStore from stores/useProgressStore.ts instead.
+ * Kept for backward compatibility only.
+ */
 const STORAGE_KEY = "projectpath_progress";
 
 // Key format: `${shareToken}:${phaseIndex}:${taskIndex}`

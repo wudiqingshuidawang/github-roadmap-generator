@@ -1,17 +1,16 @@
-import { useState } from "react";
 import toast from "react-hot-toast";
-import { isFavorited, toggleFavorite } from "../utils/favorites";
+import { useFavoritesStore } from "../stores/useFavoritesStore";
 
 interface Props {
   shareToken: string;
 }
 
 export default function FavoriteButton({ shareToken }: Props) {
-  const [fav, setFav] = useState(() => isFavorited(shareToken));
+  const fav = useFavoritesStore((s) => s.isFavorited(shareToken));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
 
   const handleClick = () => {
     const newState = toggleFavorite(shareToken);
-    setFav(newState);
     toast(newState ? "已收藏 ⭐" : "已取消收藏", { icon: newState ? "⭐" : "💔" });
   };
 

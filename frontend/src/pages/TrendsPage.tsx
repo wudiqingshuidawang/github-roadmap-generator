@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getHistory } from "../utils/history";
+import { useHistoryStore } from "../stores/useHistoryStore";
 
 // Simple bar chart using SVG
 function BarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
@@ -160,7 +160,7 @@ interface HistoryEntry {
 
 export default function TrendsPage() {
   const navigate = useNavigate();
-  const history = getHistory();
+  const history = useHistoryStore((s) => s.history);
 
   // Aggregate tech stack distribution
   const techDistribution = useMemo(() => {

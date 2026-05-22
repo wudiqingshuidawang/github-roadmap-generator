@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import ProjectInput from "../components/ProjectInput";
-import { getHistory } from "../utils/history";
+import { useHistoryStore } from "../stores/useHistoryStore";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const historyCount = getHistory().length;
+  const historyCount = useHistoryStore((s) => s.history.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-4 py-8">

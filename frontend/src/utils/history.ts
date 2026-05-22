@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use useHistoryStore from stores/useHistoryStore.ts instead.
+ * Kept for backward compatibility only.
+ */
 import type { RoadmapData } from "../types/roadmap";
 
 const STORAGE_KEY = "projectpath_history";
