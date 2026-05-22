@@ -1,8 +1,25 @@
+import { useNavigate } from "react-router-dom";
 import ProjectInput from "../components/ProjectInput";
+import { getHistory } from "../utils/history";
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const historyCount = getHistory().length;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-4">
+      {/* History link */}
+      {historyCount > 0 && (
+        <div className="absolute top-6 right-6">
+          <button
+            onClick={() => navigate("/history")}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            📋 History ({historyCount})
+          </button>
+        </div>
+      )}
+
       <div className="text-center mb-12">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
           Project<span className="text-blue-600">Path</span>

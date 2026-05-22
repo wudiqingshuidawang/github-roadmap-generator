@@ -4,7 +4,9 @@ import { getRoadmap } from "../api/roadmap";
 import TimelineView from "../components/TimelineView";
 import MindMapView from "../components/MindMapView";
 import ViewSwitcher from "../components/ViewSwitcher";
+import ExportButton from "../components/ExportButton";
 import { copyShareLink } from "../utils/share";
+import { saveToHistory } from "../utils/history";
 import type { RoadmapData } from "../types/roadmap";
 
 export default function RoadmapPage() {
@@ -18,7 +20,10 @@ export default function RoadmapPage() {
   useEffect(() => {
     if (!shareToken) return;
     getRoadmap(shareToken)
-      .then(setRoadmap)
+      .then((data) => {
+        setRoadmap(data);
+        saveToHistory(data); // Save to local history
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [shareToken]);
@@ -69,19 +74,24 @@ export default function RoadmapPage() {
           )}
         </div>
 
-        {/* View switcher */}
-        <div className="mb-6 flex justify-end">
+        {/* Actions bar */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ExportButton title={roadmap.title} />
+          </div>
           <ViewSwitcher view={view} onViewChange={setView} />
         </div>
 
         {/* Roadmap content */}
-        {roadmap.phases && (
-          view === "timeline" ? (
-            <TimelineView phases={roadmap.phases} />
-          ) : (
-            <MindMapView phases={roadmap.phases} title={roadmap.title} />
-          )
-        )}
+        <div id="roadmap-content">
+          {roadmap.phases && (
+            view === "timeline" ? (
+              <TimelineView phases={roadmap.phases} />
+            ) : (
+              <MindMapView phases={roadmap.phases} title={roadmap.title} />
+            )
+          )}
+        </div>
 
         {/* Share link */}
         <div className="mt-12 p-4 bg-white rounded-lg border text-center">
