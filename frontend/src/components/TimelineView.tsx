@@ -1,72 +1,137 @@
+import { useState, useCallback } from "react";
 import type { Phase, RoadmapTask } from "../types/roadmap";
+import { isTaskDone, toggleTask } from "../utils/progress";
 
 interface Props {
   phases: Phase[];
+  shareToken: string;
+  onTaskToggle?: () => void;
 }
 
-function TaskCard({ task }: { task: RoadmapTask }) {
+function TaskCard({ task, shareToken, phaseIdx, taskIdx, onToggle }: {
+  task: RoadmapTask;
+  shareToken: string;
+  phaseIdx: number;
+  taskIdx: number;
+  onToggle?: () => void;
+}) {
+  const [done, setDone] = useState(() => isTaskDone(shareToken, phaseIdx, taskIdx));
+
   const difficultyColor: Record<string, string> = {
     beginner: "bg-green-100 text-green-800",
     intermediate: "bg-yellow-100 text-yellow-800",
     advanced: "bg-red-100 text-red-800",
   };
 
+  const handleToggle = useCallback(() => {
+    const newState = toggleTask(shareToken, phaseIdx, taskIdx);
+    setDone(newState);
+    onToggle?.();
+  }, [shareToken, phaseIdx, taskIdx, onToggle]);
+
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between gap-2">
-        <h4 className="font-medium text-gray-900">{task.title}</h4>
-        <span
-          className={`text-xs px-2 py-0.5 rounded-full ${difficultyColor[task.difficulty] || "bg-gray-100"}`}
+    <div
+      className={`bg-white rounded-lg p-4 shadow-sm border transition-all ${
+        done ? "border-green-200 bg-green-50/30" : "border-gray-100 hover:shadow-md"
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        {/* Checkbox */}
+        <button
+          onClick={handleToggle}
+          className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+            done
+              ? "bg-green-500 border-green-500 text-white"
+              : "border-gray-300 hover:border-blue-400"
+          }`}
         >
-          {task.difficulty}
-        </span>
-      </div>
-      <p className="text-sm text-gray-600 mt-2">{task.description}</p>
-      {task.resources.length > 0 && (
-        <div className="mt-3 space-y-1">
-          {task.resources.map((r, i) => (
-            <a
-              key={i}
-              href={r.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+          {done && (
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </button>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <h4 className={`font-medium ${done ? "text-gray-400 line-through" : "text-gray-900"}`}>
+              {task.title}
+            </h4>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${difficultyColor[task.difficulty] || "bg-gray-100"}`}
             >
-              <span className="opacity-60">[{r.type}]</span> {r.title}
-            </a>
-          ))}
+              {task.difficulty}
+            </span>
+          </div>
+          <p className={`text-sm mt-2 ${done ? "text-gray-400" : "text-gray-600"}`}>
+            {task.description}
+          </p>
+          {task.resources.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {task.resources.map((r, i) => (
+                <a
+                  key={i}
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="opacity-60">[{r.type}]</span> {r.title}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-export default function TimelineView({ phases }: Props) {
+export default function TimelineView({ phases, shareToken, onTaskToggle }: Props) {
+  let globalTaskIdx = 0;
+
   return (
     <div className="relative">
       {/* Vertical line */}
       <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-blue-200" />
 
       <div className="space-y-8">
-        {phases.map((phase, i) => (
-          <div key={i} className="relative pl-16">
-            {/* Phase dot */}
-            <div className="absolute left-4 w-5 h-5 bg-blue-600 rounded-full border-4 border-white shadow" />
+        {phases.map((phase, i) => {
+          const phaseStartIdx = globalTaskIdx;
+          const tasks = phase.tasks.map((task, j) => {
+            const idx = globalTaskIdx++;
+            return (
+              <TaskCard
+                key={j}
+                task={task}
+                shareToken={shareToken}
+                phaseIdx={i}
+                taskIdx={j}
+                onToggle={onTaskToggle}
+              />
+            );
+          });
 
-            {/* Phase header */}
-            <div className="mb-4">
-              <h3 className="text-xl font-bold text-gray-900">{phase.name}</h3>
-              <span className="text-sm text-gray-500">{phase.duration}</span>
-            </div>
+          return (
+            <div key={i} className="relative pl-16">
+              {/* Phase dot */}
+              <div className="absolute left-4 w-5 h-5 bg-blue-600 rounded-full border-4 border-white shadow" />
 
-            {/* Tasks */}
-            <div className="space-y-3">
-              {phase.tasks.map((task, j) => (
-                <TaskCard key={j} task={task} />
-              ))}
+              {/* Phase header */}
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900">{phase.name}</h3>
+                <span className="text-sm text-gray-500">{phase.duration}</span>
+              </div>
+
+              {/* Tasks */}
+              <div className="space-y-3">
+                {tasks}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

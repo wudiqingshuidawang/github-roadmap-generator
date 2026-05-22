@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getRoadmap } from "../api/roadmap";
 import TimelineView from "../components/TimelineView";
 import MindMapView from "../components/MindMapView";
 import ViewSwitcher from "../components/ViewSwitcher";
 import ExportButton from "../components/ExportButton";
+import FavoriteButton from "../components/FavoriteButton";
+import ProgressBar from "../components/ProgressBar";
 import { copyShareLink } from "../utils/share";
 import { saveToHistory } from "../utils/history";
 import type { RoadmapData } from "../types/roadmap";
@@ -16,17 +18,24 @@ export default function RoadmapPage() {
   const [error, setError] = useState("");
   const [view, setView] = useState<"timeline" | "mindmap">("timeline");
   const [copied, setCopied] = useState(false);
+  const [progressKey, setProgressKey] = useState(0); // Force re-render on toggle
 
   useEffect(() => {
     if (!shareToken) return;
     getRoadmap(shareToken)
       .then((data) => {
         setRoadmap(data);
-        saveToHistory(data); // Save to local history
+        saveToHistory(data);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [shareToken]);
+
+  const handleTaskToggle = useCallback(() => {
+    setProgressKey((k) => k + 1);
+  }, []);
+
+  const totalTasks = roadmap?.phases?.reduce((sum, p) => sum + p.tasks.length, 0) ?? 0;
 
   if (loading) {
     return (
@@ -74,10 +83,18 @@ export default function RoadmapPage() {
           )}
         </div>
 
+        {/* Progress bar */}
+        {shareToken && totalTasks > 0 && (
+          <div className="mb-6">
+            <ProgressBar key={progressKey} shareToken={shareToken} totalTasks={totalTasks} />
+          </div>
+        )}
+
         {/* Actions bar */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ExportButton title={roadmap.title} />
+            <FavoriteButton shareToken={roadmap.share_token} />
           </div>
           <ViewSwitcher view={view} onViewChange={setView} />
         </div>
@@ -86,7 +103,11 @@ export default function RoadmapPage() {
         <div id="roadmap-content">
           {roadmap.phases && (
             view === "timeline" ? (
-              <TimelineView phases={roadmap.phases} />
+              <TimelineView
+                phases={roadmap.phases}
+                shareToken={roadmap.share_token}
+                onTaskToggle={handleTaskToggle}
+              />
             ) : (
               <MindMapView phases={roadmap.phases} title={roadmap.title} />
             )

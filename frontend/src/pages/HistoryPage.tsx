@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getHistory, clearHistory, type HistoryItem } from "../utils/history";
+import { getFavorites } from "../utils/favorites";
 
 export default function HistoryPage() {
   const navigate = useNavigate();
   const [history, setHistory] = useState<HistoryItem[]>(getHistory());
+  const [favorites] = useState(() => getFavorites());
+
+  // Sort: favorites first, then by date
+  const sorted = [...history].sort((a, b) => {
+    const aFav = favorites.has(a.share_token) ? 0 : 1;
+    const bFav = favorites.has(b.share_token) ? 0 : 1;
+    if (aFav !== bFav) return aFav - bFav;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   const handleClear = () => {
     if (confirm("Clear all history?")) {
@@ -42,6 +52,7 @@ export default function HistoryPage() {
             </h1>
             <p className="text-gray-500 mt-1">
               {history.length} roadmap{history.length !== 1 ? "s" : ""} generated
+              {favorites.size > 0 && ` · ⭐ ${favorites.size} favorited`}
             </p>
           </div>
           {history.length > 0 && (
@@ -55,7 +66,7 @@ export default function HistoryPage() {
         </div>
 
         {/* List */}
-        {history.length === 0 ? (
+        {sorted.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg mb-4">No roadmaps yet</p>
             <button
@@ -67,48 +78,58 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {history.map((item) => (
-              <div
-                key={item.share_token}
-                onClick={() => navigate(`/roadmap/${item.share_token}`)}
-                className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 cursor-pointer transition-all group"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                      {item.description}
-                    </p>
-                    <div className="flex items-center gap-4 mt-3 flex-wrap">
-                      <span className="text-xs text-gray-400">
-                        {formatDate(item.created_at)}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {item.phase_count} phases
-                      </span>
-                      {item.tech_stack.slice(0, 3).map((tech, i) => (
-                        <span
-                          key={i}
-                          className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                      {item.tech_stack.length > 3 && (
+            {sorted.map((item) => {
+              const isFav = favorites.has(item.share_token);
+              return (
+                <div
+                  key={item.share_token}
+                  onClick={() => navigate(`/roadmap/${item.share_token}`)}
+                  className={`bg-white rounded-xl p-5 border shadow-sm hover:shadow-md cursor-pointer transition-all group ${
+                    isFav
+                      ? "border-yellow-200 hover:border-yellow-300"
+                      : "border-gray-100 hover:border-blue-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {isFav && <span className="text-yellow-500">⭐</span>}
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                          {item.title}
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        {item.description}
+                      </p>
+                      <div className="flex items-center gap-4 mt-3 flex-wrap">
                         <span className="text-xs text-gray-400">
-                          +{item.tech_stack.length - 3}
+                          {formatDate(item.created_at)}
                         </span>
-                      )}
+                        <span className="text-xs text-gray-400">
+                          {item.phase_count} phases
+                        </span>
+                        {item.tech_stack.slice(0, 3).map((tech, i) => (
+                          <span
+                            key={i}
+                            className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                        {item.tech_stack.length > 3 && (
+                          <span className="text-xs text-gray-400">
+                            +{item.tech_stack.length - 3}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    <span className="text-gray-300 group-hover:text-blue-400 transition-colors text-lg">
+                      →
+                    </span>
                   </div>
-                  <span className="text-gray-300 group-hover:text-blue-400 transition-colors text-lg">
-                    →
-                  </span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
