@@ -6,7 +6,7 @@ from app.services.llm import LLMService
 
 
 def test_parse_roadmap_json():
-    service = LLMService(api_key="test", model="gpt-4")
+    service = LLMService(api_key="test", model="gpt-4", base_url="https://api.anthropic.com")
     sample_json = json.dumps({
         "tech_stack": [{"name": "React", "reason": "Frontend framework"}],
         "phases": [
@@ -32,13 +32,13 @@ def test_parse_roadmap_json():
 
 
 def test_parse_invalid_json():
-    service = LLMService(api_key="test", model="gpt-4")
+    service = LLMService(api_key="test", model="gpt-4", base_url="https://api.anthropic.com")
     result = service._parse_response("not valid json")
     assert result is None
 
 
 def test_extract_json_from_markdown():
-    service = LLMService(api_key="test", model="gpt-4")
+    service = LLMService(api_key="test", model="gpt-4", base_url="https://api.anthropic.com")
     markdown = 'Here is the roadmap:\n```json\n{"tech_stack": [], "phases": []}\n```'
     result = service._parse_response(markdown)
     assert result is not None
